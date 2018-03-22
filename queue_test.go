@@ -424,10 +424,10 @@ func (suite *QueueSuite) TestStopConsuming_Consumer(c *C) {
 		queue.AddConsumer("consume", consumer)
 	}
 
-	wg := queue.StopConsuming()
-	c.Assert(wg, NotNil)
+	finishedChan := queue.StopConsuming()
+	c.Assert(finishedChan, NotNil)
 
-	wg.Wait()
+	<-finishedChan
 
 	var consumedCount int
 	for i := 0; i < 10; i++ {
@@ -457,10 +457,10 @@ func (suite *QueueSuite) TestStopConsuming_BatchConsumer(c *C) {
 	consumer.AutoFinish = true
 	queue.AddBatchConsumer("consume", 50, consumer)
 
-	wg := queue.StopConsuming()
-	c.Assert(wg, NotNil)
+	finishedChan := queue.StopConsuming()
+	c.Assert(finishedChan, NotNil)
 
-	wg.Wait()
+	<-finishedChan
 
 	// make sure all fetched deliveries are consumed
 	c.Check(consumer.ConsumedCount, Equals, deliveryCount-queue.ReadyCount())
