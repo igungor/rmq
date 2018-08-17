@@ -5,6 +5,7 @@ import (
 	"log"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/adjust/uniuri"
@@ -59,7 +60,7 @@ type redisQueue struct {
 	deliveryChan     chan Delivery // nil for publish channels, not nil for consuming channels
 	prefetchLimit    int           // max number of prefetched deliveries number of unacked can go up to prefetchLimit + numConsumers
 	pollDuration     time.Duration
-	consumingStopped bool
+	consumingStopped int32 // set to 1 if stopped, used atomically
 	stopWg           sync.WaitGroup
 }
 
@@ -218,7 +219,7 @@ func (queue *redisQueue) StartConsuming(prefetchLimit int, pollDuration time.Dur
 
 func (queue *redisQueue) StopConsuming() <-chan struct{} {
 	// log.Printf("rmq queue stopping %s", queue)
-	queue.consumingStopped = true
+	atomic.StoreInt32(&queue.consumingStopped, 1)
 	finishedChan := make(chan struct{})
 	go func() {
 		queue.stopWg.Wait()
@@ -295,7 +296,7 @@ func (queue *redisQueue) consume() {
 			time.Sleep(queue.pollDuration)
 		}
 
-		if queue.consumingStopped {
+		if atomic.LoadInt32(&queue.consumingStopped) == 1 {
 			close(queue.deliveryChan)
 			// log.Printf("rmq queue stopped fetching %s", queue)
 			return
