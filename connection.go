@@ -34,6 +34,11 @@ func OpenConnectionWithRedisClient(tag string, redisClient *redis.Client) *redis
 	return openConnectionWithRedisClient(tag, RedisWrapper{redisClient})
 }
 
+// OpenConnectionWithRedisClusterClient opens and returns a new connection
+func OpenConnectionWithRedisClusterClient(tag string, redisClient *redis.ClusterClient) *redisConnection {
+	return openConnectionWithRedisClient(tag, RedisClusterWrapper{redisClient})
+}
+
 // OpenConnectionWithTestRedisClient opens and returns a new connection which
 // uses a test redis client internally. This is useful in integration tests.
 func OpenConnectionWithTestRedisClient(tag string) *redisConnection {
