@@ -85,15 +85,14 @@ func (wrapper RedisWrapper) FlushDb() {
 	wrapper.rawClient.FlushDb()
 }
 
-// checkErr returns true if there is no error, false if the result error is nil and panics if there's another error
-func checkErr(err error) (ok bool) {
+func checkErr(err error) bool {
 	switch err {
 	case nil:
 		return true
 	case redis.Nil:
 		return false
 	default:
-		log.Panicf("rmq redis error is not nil %s", err)
+		log.Printf("rmq: %v", err)
 		return false
 	}
 }
